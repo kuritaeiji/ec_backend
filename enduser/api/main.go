@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/kuritaeiji/ec_backend/config"
-	"github.com/kuritaeiji/ec_backend/presentation/handler"
+	"github.com/kuritaeiji/ec_backend/enduser/presentation/handler"
 	"github.com/labstack/echo/v4"
 )
 
