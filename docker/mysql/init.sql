@@ -1,0 +1,1 @@
+create database if not exists `ec_db_test`;

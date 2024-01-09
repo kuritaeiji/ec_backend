@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  golang:
+    build:
+      context: .
+      dockerfile: golang/Dockerfile
+      target: dev
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ..:/go/app
+      - ~/.gitconfig:/etc/gitconfig
+    tty: true
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0.35-debian
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_DATABASE: 'ec_db'
+      TZ: Asia/Tokyo
+    tty: true
+    ports:
+      - 3307:3306
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    command: mysqld
