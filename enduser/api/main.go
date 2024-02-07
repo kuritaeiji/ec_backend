@@ -11,6 +11,7 @@ import (
 
 	"github.com/kuritaeiji/ec_backend/config"
 	"github.com/kuritaeiji/ec_backend/enduser/presentation/handler"
+	"github.com/kuritaeiji/ec_backend/enduser/registory"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,36 +21,36 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	c.Response().Writer.WriteHeader(http.StatusInternalServerError)
 }
 
-// ハンドラーのセットアップ
-func setupHandlers(e *echo.Echo) {
-	handler.SetupHealthcheckHandler(e)
-}
 
 func main() {
 	e := echo.New()
 
 	// 環境変数読み込み
 	if err := config.SetupEnv(); err != nil {
-		e.Logger.Error("環境変数読み込み失敗\n", fmt.Sprintf("%+v", err))
-		os.Exit(1)
+		e.Logger.Fatal("環境変数読み込み失敗\n", fmt.Sprintf("%+v", err))
 	}
 
 	// DB接続
 	_, close, err := config.SetupDB()
 	if err != nil {
 		e.Logger.Error("DB接続失敗\n", fmt.Sprintf("%+v", err))
-		os.Exit(1)
 	}
 	defer close()
 
-	// ログ設定
-	config.SetupLogger(e)
+	// コンテナ作成
+	container, err := registory.NewContainer()
+	if err != nil {
+		e.Logger.Fatal("コンテナ作成失敗\n", fmt.Sprintf("%+v", err))
+	}
 
 	// エラーハンドラー設定
 	e.HTTPErrorHandler = customHTTPErrorHandler
 
 	// ハンドラー設定
-	setupHandlers(e)
+	err = handler.SetupHandlers(e, container)
+	if err != nil {
+		e.Logger.Fatal("ハンドラー設定失敗\n", fmt.Sprintf("+%v", err))
+	}
 
 	// サーバー起動（FargateのSIGINTシグナルを受け取ると停止するようにする）
 	errorCh := make(chan error, 1)

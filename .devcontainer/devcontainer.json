@@ -16,7 +16,8 @@
         "redhat.vscode-yaml",
         "mosapride.zenkaku",
         "github.vscode-github-actions",
-        "ms-vscode.makefile-tools"
+        "ms-vscode.makefile-tools",
+        "Gruntfuggly.todo-tree"
       ]
     }
   }

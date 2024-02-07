@@ -5,7 +5,7 @@ tidy:
 .PHONY: tidy
 
 fmt: tidy
-	goimports -l -w api config presentation
+	goimports -l -w config share util enduser systemuser
 .PHONY: fmt
 
 lint: fmt
@@ -17,11 +17,11 @@ gen: lint
 .PHONY: gen
 
 run: gen
-	export ENV=dev && go run -race api/main.go
+	export ENV=dev && go run -race enduser/api/main.go
 .PHONY: run
 
 build: gen
-	go build -o main api/main.go
+	go build -o main enduser/api/main.go
 .PHONY: build
 
 test: gen
