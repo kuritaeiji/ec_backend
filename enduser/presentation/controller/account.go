@@ -19,12 +19,12 @@ func NewAccountController(accountUsecase usecase.AccountUsecase) AccountControll
 }
 
 type AccountCreationForm struct {
-	Email *string `json:"email"`
-	Password *string `json:"password"`
-	PasswordConfirmation *string `json:"passwordConfirmation"`
+	Email                string `json:"email"`
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"passwordConfirmation"`
 }
 
-//メールアドレスによって新規アカウントを登録する
+// メールアドレスによって新規アカウントを登録する
 func (ac AccountController) CreateAccountByEmail(c echo.Context) error {
 	form := new(AccountCreationForm)
 	err := c.Bind(form)
@@ -35,11 +35,11 @@ func (ac AccountController) CreateAccountByEmail(c echo.Context) error {
 	err = ac.accountUsecase.CreateAccountByEmail(c.Request().Context(), form.Email, form.Password, form.PasswordConfirmation)
 	if err != nil {
 		if oe, ok := err.(share.OriginalError); ok {
-			return c.JSON(http.StatusOK, oe)
+			return c.JSON(http.StatusOK, share.OriginalErrorToResult(oe))
 		}
 
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, share.SuccessResult())
 }

@@ -24,7 +24,10 @@ type (
 )
 
 func NewDomainEventPublisher() DomainEventPublisher {
-	return &domainEventPublisher{}
+	subscribers := make(map[DomainEventName][]DomainEventSubscriber)
+	return &domainEventPublisher{
+		subscribers: subscribers,
+	}
 }
 
 func (publisher domainEventPublisher) Publish(events []DomainEvent) error {

@@ -18,11 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, close, err := config.SetupDB()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer close()
+	db := config.NewDB()
 
 	app := cli.App{
 		Name: "migration",
@@ -60,17 +56,20 @@ func newMigrationCommands(migrator *migrate.Migrator) []*cli.Command {
 		{
 			Name: "migrate",
 			Usage: "migrate database",
-			Action: func(ctx *cli.Context) (err error) {
-				defer exit(err)
-
-				if err = migrator.Lock(ctx.Context); err != nil {
-					return err
+			Action: func(ctx *cli.Context) error {
+				if err := migrator.Lock(ctx.Context); err != nil {
+					return exit(err)
 				}
-				defer migrator.Unlock(ctx.Context)
+				defer func() {
+					err := migrator.Unlock(ctx.Context)
+					if err != nil {
+						fmt.Println(err)
+					}
+				}()
 
 				group, err := migrator.Migrate(ctx.Context)
 				if err != nil {
-					return err
+					return exit(err)
 				}
 				if group.IsZero() {
 					fmt.Println("migrateするテーブルが存在しません")
@@ -84,17 +83,20 @@ func newMigrationCommands(migrator *migrate.Migrator) []*cli.Command {
 		{
 			Name: "rollback",
 			Usage: "rollback the last migration group",
-			Action: func(ctx *cli.Context) (err error) {
-				defer exit(err)
-
-				if err = migrator.Lock(ctx.Context); err != nil {
-					return err
+			Action: func(ctx *cli.Context) error {
+				if err := migrator.Lock(ctx.Context); err != nil {
+					return exit(err)
 				}
-				defer migrator.Unlock(ctx.Context)
+				defer func() {
+					err := migrator.Unlock(ctx.Context)
+					if err != nil {
+						fmt.Println(err)
+					}
+				}()
 
 				group, err := migrator.Rollback(ctx.Context)
 				if err != nil {
-					return err
+					return exit(err)
 				}
 
 				if group.IsZero() {
@@ -116,24 +118,22 @@ func newMigrationCommands(migrator *migrate.Migrator) []*cli.Command {
 					Value: false,
 				},
 			},
-			Action: func(ctx *cli.Context) (err error) {
-				defer exit(err)
+			Action: func(ctx *cli.Context) error {
 
 				fname := strings.Join(ctx.Args().Slice(), "_")
-				var mf *migrate.MigrationFile
 				if ctx.Bool("sql") {
 					mfs, err := migrator.CreateSQLMigrations (ctx.Context, fname)
 					if err != nil {
-						return err
+						return exit(err)
 					}
 					for _, mf := range mfs {
 						fmt.Printf("作成したマイグレーションファイル: %s (%s)\n", mf.Name, mf.Path)
 					}
 					return nil
 				} else {
-					mf, err = migrator.CreateGoMigration(ctx.Context, fname)
+					mf, err := migrator.CreateGoMigration(ctx.Context, fname)
 					if err != nil {
-						return err
+						return exit(err)
 					}
 
 					fmt.Printf("作成したマイグレーションファイル: %s (%s)\n", mf.Name, mf.Path)
@@ -144,12 +144,11 @@ func newMigrationCommands(migrator *migrate.Migrator) []*cli.Command {
 		{
 			Name: "status",
 			Usage: "print migration status",
-			Action: func(ctx *cli.Context) (err error) {
-				defer exit(err)
+			Action: func(ctx *cli.Context) error {
 
 				ms, err := migrator.MigrationsWithStatus(ctx.Context)
 				if err != nil {
-					return err
+					return exit(err)
 				}
 
 				fmt.Printf("マイグレーション: %s\n", ms)

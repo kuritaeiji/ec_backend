@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test(t *testing.T) {
+func TestHealthcheckController(t *testing.T) {
 	// given（前提条件）
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/healthcheck", nil)

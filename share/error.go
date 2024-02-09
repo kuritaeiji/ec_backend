@@ -3,16 +3,16 @@ package share
 import "strings"
 
 type (
-	OriginalErrorCode int
+	ErrorCode int
 
 	OriginalError struct {
-		Code     OriginalErrorCode `json:"code"`
-		Messages []string `json:"messages"`
+		Code     ErrorCode `json:"code"`
+		Messages []string  `json:"messages"`
 	}
 )
 
 const (
-	ErrorCodeValidation OriginalErrorCode = iota + 1
+	ErrorCodeValidation ErrorCode = iota + 2
 )
 
 func (oe OriginalError) Error() string {

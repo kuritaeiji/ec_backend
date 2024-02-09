@@ -15,3 +15,9 @@ func (bu bcryptUtils) GeneratePasswordDigest(password string) (string, error) {
 
 	return string(passwordDigestByte), nil
 }
+
+// ハッシュ化されたパスワードとパスワードが一致する場合にtrueを、そうでない場合にfalseを返却する
+func (bu bcryptUtils) MatchPassword(hashedPassword string, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil
+}

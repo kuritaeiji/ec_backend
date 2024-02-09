@@ -17,10 +17,10 @@ func init() {
 // アカウント登録時のバリデーション用アカウント構造体
 // アカウントエンティティーのパスワードはハッシュ化されたパスワードのためバリデーション用のオブジェクトを作成する
 type ValidationAccountForCreation struct {
-	Email    *string `validate:"required,lte=255,email"`
-	Password *string
-	PasswordConfirmation *string
-	AuthType enum.AuthType
+	Email                string `validate:"required,lte=255,email"`
+	Password             string
+	PasswordConfirmation string
+	AuthType             enum.AuthType
 }
 
 // レビュー投稿者名のバリデーションアカウント構造体
@@ -45,13 +45,11 @@ func passwordValidator(sl validator.StructLevel) {
 		return
 	}
 
-	passwordPtr := validationAccount.Password
-	if passwordPtr == nil || *passwordPtr == "" {
+	password := validationAccount.Password
+	if password == "" {
 		sl.ReportError(validationAccount.Password, passwordFieldName, passwordFieldName, "required", "")
 		return
 	}
-
-	password := *passwordPtr
 
 	if len(password) < 8 {
 		sl.ReportError(validationAccount.Password, passwordFieldName, passwordFieldName, "gte", "8")
@@ -64,21 +62,21 @@ func passwordValidator(sl validator.StructLevel) {
 	}
 
 	for _, char := range password {
-		if !unicode.IsLetter(char) && !unicode.IsNumber(char) && !strings.ContainsRune(availableSymbolForPassword, char) {
+		if !isAlphabet(char) && !unicode.IsNumber(char) && !strings.ContainsRune(availableSymbolForPassword, char) {
 			sl.ReportError(validationAccount.Password, passwordFieldName, passwordFieldName, "available_symbol_password", availableSymbolForPassword)
 			return
 		}
 	}
 
-	passwordConfirmationPtr := validationAccount.PasswordConfirmation
-	if passwordConfirmationPtr == nil {
-		sl.ReportError(validationAccount.Password, passwordFieldName, passwordFieldName, "password_confirmation", "")
-		return
-	}
-
-	passwordConfirmation := *passwordConfirmationPtr
+	passwordConfirmation := validationAccount.PasswordConfirmation
 	if password != passwordConfirmation {
 		sl.ReportError(validationAccount.Password, passwordFieldName, passwordFieldName, "password_confirmation", "")
 		return
 	}
+}
+
+const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func isAlphabet(r rune) bool {
+	return strings.ContainsRune(alphabet, r)
 }

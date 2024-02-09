@@ -11,9 +11,9 @@ import (
 
 type AccountUsecase struct {
 	accountDomainService service.AccountDomainService
-	accountRepository repository.AccountRepository
+	accountRepository    repository.AccountRepository
 	domainEventPublisher share.DomainEventPublisher
-	db bun.IDB
+	db                   bun.IDB
 }
 
 func NewAccountUsecase(
@@ -24,14 +24,14 @@ func NewAccountUsecase(
 ) AccountUsecase {
 	return AccountUsecase{
 		accountDomainService: accountDomainService,
-		accountRepository: accountRepository,
+		accountRepository:    accountRepository,
 		domainEventPublisher: domainEventPublisher,
-		db: db,
+		db:                   db,
 	}
 }
 
-//メールアドレスによって新規アカウントを登録する
-func (au AccountUsecase) CreateAccountByEmail(ctx context.Context, email *string, password *string, passwordConfirmation *string) error {
+// メールアドレスによって新規アカウントを登録する
+func (au AccountUsecase) CreateAccountByEmail(ctx context.Context, email string, password string, passwordConfirmation string) error {
 	err := au.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		account, err := au.accountDomainService.CreateAccountByEmail(email, password, passwordConfirmation, au.db, ctx)
 		if err != nil {

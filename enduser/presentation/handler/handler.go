@@ -12,7 +12,7 @@ func SetupHandlers(e *echo.Echo, container *dig.Container) error {
 		return err
 	}
 
-	err = setupHealthcheckHandler(e, container)
+	err = setupAccountHandler(e, container)
 	if err != nil {
 		return err
 	}

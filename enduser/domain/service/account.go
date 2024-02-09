@@ -30,13 +30,13 @@ func NewAccountService(accountRepository repository.AccountRepository, validatio
 
 const initialReviewNickname = "匿名"
 
-func (as AccountDomainService) CreateAccountByEmail(email *string, password *string, passwordConfirmation *string, db bun.IDB, ctx context.Context) (entity.Account, error) {
+func (as AccountDomainService) CreateAccountByEmail(email string, password string, passwordConfirmation string, db bun.IDB, ctx context.Context) (entity.Account, error) {
 	// バリデーション実施
 	validationAccount := validator.ValidationAccountForCreation{
-		Email:    email,
-		Password: password,
+		Email:                email,
+		Password:             password,
 		PasswordConfirmation: passwordConfirmation,
-		AuthType: enum.AuthTypeEmail,
+		AuthType:             enum.AuthTypeEmail,
 	}
 
 	err := as.validationUtils.Struct(validationAccount)
@@ -45,7 +45,7 @@ func (as AccountDomainService) CreateAccountByEmail(email *string, password *str
 	}
 
 	// メールアドレスが一意であることを確認
-	account, isUnique, err := as.emailIsUnique(*email, db, ctx)
+	account, isUnique, err := as.emailIsUnique(email, db, ctx)
 	if err != nil {
 		return entity.Account{}, err
 	}
@@ -59,25 +59,25 @@ func (as AccountDomainService) CreateAccountByEmail(email *string, password *str
 	}
 
 	// パスワードダイジェストを作成する
-	passwordDigest, err := util.BcryptUtils.GeneratePasswordDigest(*password)
+	passwordDigest, err := util.BcryptUtils.GeneratePasswordDigest(password)
 	if err != nil {
 		as.logger.Error("Bcryptによるパスワードのハッシュ化失敗\n", err)
 		return entity.Account{}, err
 	}
 
 	// メールアドレスによるアカウント登録イベントを作成する
-	event := event.AccountCreatedByEmailEvent{Email: *email}
+	event := event.AccountCreatedByEmailEvent{Email: email}
 
 	return entity.Account{
 		ID:                util.IDutils.GenerateID(),
-		Email:             *email,
+		Email:             email,
 		PasswordDigest:    &passwordDigest,
 		AuthType:          enum.AuthTypeEmail,
 		ExternalAccountID: nil,
 		IsActive:          false,
 		StripeCustomerId:  nil,
 		ReviewNickname:    initialReviewNickname,
-		Events: []share.DomainEvent{event},
+		Events:            []share.DomainEvent{event},
 	}, nil
 }
 

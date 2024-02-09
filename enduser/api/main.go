@@ -21,7 +21,6 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	c.Response().Writer.WriteHeader(http.StatusInternalServerError)
 }
 
-
 func main() {
 	e := echo.New()
 
@@ -29,13 +28,6 @@ func main() {
 	if err := config.SetupEnv(); err != nil {
 		e.Logger.Fatal("環境変数読み込み失敗\n", fmt.Sprintf("%+v", err))
 	}
-
-	// DB接続
-	_, close, err := config.SetupDB()
-	if err != nil {
-		e.Logger.Error("DB接続失敗\n", fmt.Sprintf("%+v", err))
-	}
-	defer close()
 
 	// コンテナ作成
 	container, err := registory.NewContainer()

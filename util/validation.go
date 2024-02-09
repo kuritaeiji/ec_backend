@@ -10,6 +10,15 @@ import (
 
 var Validate = validator.New()
 
+const (
+	RequriedMsg               = "%sは必須です"
+	LteMsg                    = "%sは%s文字以下にしてください"
+	GteMsg                    = "%sは%s文字以上にしてください"
+	AvailableSymbolPaswordMsg = "%sはアルファベット・数字・%sのみ使用できます"
+	EmailMsg                  = "%sはメールアドレスとして正しい形式ではありません"
+	PasswordConfirmationMsg   = "%sが一致しません"
+)
+
 type ValidationUtils interface {
 	Struct(s interface{}) error
 	CreateValidationMessages(err error) error
@@ -40,7 +49,7 @@ func (vu validationUtils) CreateValidationMessages(err error) error {
 	msgs := []string{}
 
 	for _, vErr := range vErrs {
-		fieldName, ok := fieldNames[vErr.Namespace()]
+		fieldName, ok := FieldNames[vErr.Namespace()]
 		if !ok {
 			vu.logger.Debug(fmt.Sprintf("%sの日本語フィールド名がfieldNamesに登録されていません", vErr.Namespace()))
 			continue
@@ -50,18 +59,18 @@ func (vu validationUtils) CreateValidationMessages(err error) error {
 		param := vErr.Param()
 
 		switch tag {
-		case "requried":
-			msgs = append(msgs, fmt.Sprintf("%sは必須です", fieldName))
+		case "required":
+			msgs = append(msgs, fmt.Sprintf(RequriedMsg, fieldName))
 		case "lte":
-			msgs = append(msgs, fmt.Sprintf("%sは%s文字以下にしてください", fieldName, param))
+			msgs = append(msgs, fmt.Sprintf(LteMsg, fieldName, param))
 		case "gte":
-			msgs = append(msgs, fmt.Sprintf("%sは%s文字以上にしてください", fieldName, param))
-		case "available_symbol_pasword":
-			msgs = append(msgs, fmt.Sprintf(`%sはアルファベット・数字・%sのみ使用できます`, fieldName, param))
+			msgs = append(msgs, fmt.Sprintf(GteMsg, fieldName, param))
+		case "available_symbol_password":
+			msgs = append(msgs, fmt.Sprintf(AvailableSymbolPaswordMsg, fieldName, param))
 		case "email":
-			msgs = append(msgs, fmt.Sprintf(`%sはメールアドレスとして正しい形式ではありません`, fieldName))
+			msgs = append(msgs, fmt.Sprintf(EmailMsg, fieldName))
 		case "password_confirmation":
-			msgs = append(msgs, fmt.Sprintf("%sが一致しません", fieldName))
+			msgs = append(msgs, fmt.Sprintf(PasswordConfirmationMsg, fieldName))
 		}
 	}
 

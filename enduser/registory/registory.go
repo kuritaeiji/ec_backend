@@ -2,12 +2,16 @@ package registory
 
 import (
 	"github.com/cockroachdb/errors"
+	"github.com/kuritaeiji/ec_backend/config"
 	"github.com/kuritaeiji/ec_backend/enduser/application/usecase"
+	"github.com/kuritaeiji/ec_backend/enduser/domain/event"
+	"github.com/kuritaeiji/ec_backend/enduser/domain/repository"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/service"
 	"github.com/kuritaeiji/ec_backend/enduser/infrastructure/persistance"
 	"github.com/kuritaeiji/ec_backend/enduser/presentation/controller"
 	"github.com/kuritaeiji/ec_backend/share"
 	"github.com/kuritaeiji/ec_backend/util"
+	"github.com/uptrace/bun"
 	"go.uber.org/dig"
 )
 
@@ -15,32 +19,37 @@ import (
 func NewContainer() (*dig.Container, error) {
 	container := dig.New()
 
-	err := addControllerTo(container)
+	err := container.Provide(config.NewDB, dig.As(new(bun.IDB)))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	err = AddControllerTo(container)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addUsecaseTo(container)
+	err = AddUsecaseTo(container)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addDomainServiceTo(container)
+	err = AddDomainServiceTo(container)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addRepositoryTo(container)
+	err = AddDomainEventPublisherTo(container)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addUtilsTo(container)
+	err = AddRepositoryTo(container)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addShareTo(container)
+	err = AddUtilsTo(container)
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +57,60 @@ func NewContainer() (*dig.Container, error) {
 	return container, nil
 }
 
+// テスト用Iコンテナを作成する
+func NewTestContainer() (*dig.Container, error) {
+	container := dig.New()
+
+	err := container.Provide(config.NewDB, dig.As(new(bun.IDB)))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	err = AddControllerTo(container)
+	if err != nil {
+		return nil, err
+	}
+
+	err = AddUsecaseTo(container)
+	if err != nil {
+		return nil, err
+	}
+
+	err = AddDomainServiceTo(container)
+	if err != nil {
+		return nil, err
+	}
+
+	err = AddDomainEventPublisherTo(container)
+	if err != nil {
+		return nil, err
+	}
+
+	err = AddRepositoryTo(container)
+	if err != nil {
+		return nil, err
+	}
+
+	err = AddUtilsTo(container)
+	if err != nil {
+		return nil, err
+	}
+
+	return container, nil
+}
+
+// DBをDIコンテナに追加する
+func AddDBTo(container *dig.Container) error {
+	err := container.Provide(config.NewDB, dig.As(new(bun.IDB)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
 // コントローラーをDIコンテナに追加する
-func addControllerTo(container *dig.Container) error {
+func AddControllerTo(container *dig.Container) error {
 	err := container.Provide(controller.NewHealthcheckController)
 	if err != nil {
 		return errors.WithStack(err)
@@ -63,7 +124,7 @@ func addControllerTo(container *dig.Container) error {
 	return nil
 }
 
-func addUsecaseTo(container *dig.Container) error {
+func AddUsecaseTo(container *dig.Container) error {
 	err := container.Provide(usecase.NewAccountUsecase)
 	if err != nil {
 		return errors.WithStack(err)
@@ -73,18 +134,34 @@ func addUsecaseTo(container *dig.Container) error {
 }
 
 // ドメインサービスをDIコンテナに追加する
-func addDomainServiceTo(container *dig.Container) error {
+func AddDomainServiceTo(container *dig.Container) error {
 	err := container.Provide(service.NewAccountService)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	return err
+	return nil
+}
+
+// ドメインイベントパブリッシャーをDIコンテナに追加する
+// 各イベントに対するサブスクライバーを定義する
+func AddDomainEventPublisherTo(container *dig.Container) error {
+	err := container.Provide(func() share.DomainEventPublisher {
+		publisher := share.NewDomainEventPublisher()
+		event.SubscribeAccountDomainEvent(publisher)
+		return publisher
+	})
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
 // リポジトリをDIコンテナに追加する
-func addRepositoryTo(container *dig.Container) error {
-	err := container.Provide(persistance.NewAccountRepository)
+func AddRepositoryTo(container *dig.Container) error {
+	err := container.Provide(persistance.NewAccountRepository, dig.As(new(repository.AccountRepository)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -93,23 +170,13 @@ func addRepositoryTo(container *dig.Container) error {
 }
 
 // ユーティリティーをDIコンテナに追加する
-func addUtilsTo(container *dig.Container) error {
+func AddUtilsTo(container *dig.Container) error {
 	err := container.Provide(util.NewLogger)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	err = container.Provide(util.NewValidationUtils)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	return nil
-}
-
-// 共有クラスをDIコンテナに追加する
-func addShareTo(container *dig.Container) error {
-	err := container.Provide(share.NewDomainEventPublisher)
+	err = container.Provide(util.NewValidationUtils, dig.As(new(util.ValidationUtils)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
