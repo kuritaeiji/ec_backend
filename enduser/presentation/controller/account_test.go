@@ -162,9 +162,8 @@ func (suite *accountControllerTestSuite) TestCreateAccountEmailIsUnique() {
 
 				e := echo.New()
 				c := e.NewContext(req, rec)
-				var err error
 
-				err = con.CreateAccountByEmail(c)
+				err := con.CreateAccountByEmail(c)
 
 				// then（期待する結果）
 				assert.Nil(t, err)

@@ -32,13 +32,13 @@ func NewAccountUsecase(
 
 // メールアドレスによって新規アカウントを登録する
 func (au AccountUsecase) CreateAccountByEmail(ctx context.Context, email string, password string, passwordConfirmation string) error {
-	err := au.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		account, err := au.accountDomainService.CreateAccountByEmail(email, password, passwordConfirmation, au.db, ctx)
+	err := au.db.RunInTx(ctx, nil, func(ctxt context.Context, tx bun.Tx) error {
+		account, err := au.accountDomainService.CreateAccountByEmail(email, password, passwordConfirmation, tx, ctxt)
 		if err != nil {
 			return err
 		}
 
-		err = au.accountRepository.Insert(au.db, ctx, account, au.domainEventPublisher)
+		err = au.accountRepository.Insert(tx, ctxt, account, au.domainEventPublisher)
 		if err != nil {
 			return err
 		}
