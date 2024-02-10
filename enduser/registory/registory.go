@@ -2,11 +2,13 @@ package registory
 
 import (
 	"log"
+	"testing"
 
 	"github.com/cockroachdb/errors"
 	"github.com/kuritaeiji/ec_backend/config"
 	"github.com/kuritaeiji/ec_backend/enduser/application/usecase"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/adapter"
+	"github.com/kuritaeiji/ec_backend/enduser/domain/adapter/mocks"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/event"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/repository"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/service"
@@ -15,6 +17,7 @@ import (
 	"github.com/kuritaeiji/ec_backend/enduser/presentation/controller"
 	"github.com/kuritaeiji/ec_backend/share"
 	"github.com/kuritaeiji/ec_backend/util"
+	"github.com/stretchr/testify/mock"
 	"github.com/uptrace/bun"
 	"go.uber.org/dig"
 )
@@ -67,12 +70,17 @@ func NewContainer() (*dig.Container, error) {
 }
 
 // テスト用DIコンテナを作成する
-func NewTestContainer() (*dig.Container, error) {
+func NewTestContainer(t *testing.T) (*dig.Container, error) {
 	container := dig.New()
 
-	err := AddDBTo(container)
+	err := AddTestingTo(container, t)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
+	}
+
+	err = AddDBTo(container)
+	if err != nil {
+		return nil, err
 	}
 
 	err = AddRepositoryTo(container)
@@ -80,7 +88,7 @@ func NewTestContainer() (*dig.Container, error) {
 		return nil, err
 	}
 
-	err = AddAdapterTo(container)
+	err = AddMockAdapterTo(container)
 	if err != nil {
 		return nil, err
 	}
@@ -204,6 +212,16 @@ func AddAdapterTo(container *dig.Container) error {
 	return nil
 }
 
+// モック化されたアダプターをDIコンテナに追加する
+func AddMockAdapterTo(container *dig.Container) error {
+	err := container.Provide(mocks.NewEmailAdapter, dig.As((new(adapter.EmailAdapter))))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
 // ユーティリティーをDIコンテナに追加する
 func AddUtilsTo(container *dig.Container) error {
 	err := container.Provide(util.NewLogger)
@@ -212,6 +230,22 @@ func AddUtilsTo(container *dig.Container) error {
 	}
 
 	err = container.Provide(util.NewValidationUtils, dig.As(new(util.ValidationUtils)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+// モックを作成する際に*testing.Tが必要なのでDIコンテナに追加する
+func AddTestingTo(container *dig.Container, t *testing.T) error {
+	err := container.Provide(func() *testing.T {
+		return t
+	}, dig.As(new(interface {
+		mock.TestingT
+		Cleanup(func())
+	})))
+
 	if err != nil {
 		return errors.WithStack(err)
 	}

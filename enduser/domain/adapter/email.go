@@ -1,3 +1,4 @@
+//go:generate mockery --name EmailAdapter
 package adapter
 
 type EmailAdapter interface {

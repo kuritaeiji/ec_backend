@@ -1,8 +1,6 @@
 package bridge
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
@@ -12,7 +10,7 @@ import (
 type emailAdapter struct{}
 
 const (
-	From       = "info@ec-site.shop"
+	From = "info@ec-site.shop"
 )
 
 func NewEmailAdapter() emailAdapter {
@@ -26,7 +24,6 @@ func (ea emailAdapter) SendEmail(from string, to string, subject string, text st
 		Region: aws.String("ap-northeast-1"),
 	})
 	if err != nil {
-		fmt.Println("Error creating session:", err)
 		return err
 	}
 

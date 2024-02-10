@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 
 	"github.com/kuritaeiji/ec_backend/config"
+	"github.com/kuritaeiji/ec_backend/enduser/domain/adapter"
+	"github.com/kuritaeiji/ec_backend/enduser/domain/adapter/mocks"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/enum"
+	"github.com/kuritaeiji/ec_backend/enduser/infrastructure/bridge"
 	"github.com/kuritaeiji/ec_backend/enduser/infrastructure/persistance"
 	"github.com/kuritaeiji/ec_backend/enduser/presentation/controller"
 	"github.com/kuritaeiji/ec_backend/enduser/registory"
@@ -17,6 +21,7 @@ import (
 	"github.com/kuritaeiji/ec_backend/util"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/uptrace/bun"
 	"go.uber.org/dig"
@@ -30,11 +35,11 @@ type accountControllerTestSuite struct {
 func TestAccountController(t *testing.T) {
 	err := config.SetupEnv()
 	if err != nil {
-		assert.Fail(t, fmt.Sprintf("環境変数設定時にエラーが発生しました。\n%+v", err))
+		assert.FailNow(t, fmt.Sprintf("環境変数設定時にエラーが発生しました。\n%+v", err))
 	}
-	container, err := registory.NewTestContainer()
+	container, err := registory.NewTestContainer(t)
 	if err != nil {
-		assert.Fail(t, fmt.Sprintf("コンテナ作成時にエラーが発生しました。\n%+v", err))
+		assert.FailNow(t, fmt.Sprintf("コンテナ作成時にエラーが発生しました。\n%+v", err))
 	}
 	suite.Run(t, &accountControllerTestSuite{
 		container: container,
@@ -182,8 +187,7 @@ func (suite *accountControllerTestSuite) TestCreateAccountSuccess() {
 	// given（前提条件）
 	defer suite.tearDown()
 
-	// when（操作）
-	cErr := suite.container.Invoke(func(con controller.AccountController, db bun.IDB) {
+	cErr := suite.container.Invoke(func(con controller.AccountController, db bun.IDB, emailAdapter adapter.EmailAdapter) {
 		email := "test@test.com"
 		password := "password"
 		req := httptest.NewRequest(http.MethodPost, "/account", test.FormToReader(controller.AccountCreationForm{
@@ -193,12 +197,30 @@ func (suite *accountControllerTestSuite) TestCreateAccountSuccess() {
 		}))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec := httptest.NewRecorder()
-
 		e := echo.New()
 		c := e.NewContext(req, rec)
+
+		emailAdapterMock, ok := emailAdapter.(*mocks.EmailAdapter)
+		if !ok {
+			suite.FailNow("EmailAdapterを*mocksEmailAdapter似型アサーションできませんでした")
+		}
+
+		emailAdapterMock.On("SendEmail", bridge.From, email, "認証メール", mock.MatchedBy(func(text string) bool {
+			tokenRegexp := regexp.MustCompile(`token=([^"&]+)`)
+			matches := tokenRegexp.FindStringSubmatch(text)
+			if len(matches) != 2 {
+				return false
+			}
+			tokenString := matches[1]
+			sub, err := util.JwtUtils.ParseJwt(tokenString)
+			return err == nil && sub == email
+		})).Return(nil)
+
+		// when（操作）
 		err := con.CreateAccountByEmail(c)
 
 		// then（期待する結果）
+		emailAdapterMock.AssertNumberOfCalls(suite.T(), "SendEmail", 1)
 		suite.Nil(err)
 		suite.Equal(http.StatusOK, rec.Code)
 		res := new(share.Result)

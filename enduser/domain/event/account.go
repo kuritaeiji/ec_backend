@@ -49,7 +49,7 @@ func (as AccountCreatedByEmailSubscriber) Subscribe(event share.DomainEvent) err
 		return errors.WithStack(err)
 	}
 
-	text := fmt.Sprintf("<a>%s?token=%s</a><br/>有効期限は24時間", os.Getenv("BACKEND_URL"), jwtString)
+	text := fmt.Sprintf(`<a href="%s?token=%s">メールアドレスを認証する</a><br/>有効期限は24時間`, os.Getenv("BACKEND_URL"), jwtString)
 
 	err = as.emailAdapter.SendEmail(bridge.From, email, "認証メール", text)
 	if err != nil {
