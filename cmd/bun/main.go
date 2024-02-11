@@ -15,7 +15,7 @@ import (
 func main() {
 	err := config.SetupEnv()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%+v", err)
 	}
 
 	db := config.NewDB()

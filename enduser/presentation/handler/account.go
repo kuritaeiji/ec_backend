@@ -9,6 +9,7 @@ import (
 func setupAccountHandler(e *echo.Echo, container *dig.Container) error {
 	err := container.Invoke(func(ac controller.AccountController) {
 		e.POST("/account", ac.CreateAccountByEmail)
+		e.GET("/account/email/auth", ac.AuthenticateEmail)
 	})
 	return err
 }

@@ -59,6 +59,17 @@ func (ar accountRepository) Insert(db bun.IDB, ctx context.Context, account enti
 	return nil
 }
 
+func (ar accountRepository) Update(db bun.IDB, ctx context.Context, account entity.Account, domainEventPublisher share.DomainEventPublisher) error {
+	mAccout := ar.toModel(account)
+	_, err := db.NewUpdate().Model(&mAccout).WherePK().Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = domainEventPublisher.Publish(account.Events)
+	return err
+}
+
 func (ar accountRepository) toEntity(account Account) entity.Account {
 	return entity.Account{
 		ID:                account.ID,

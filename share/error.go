@@ -12,7 +12,8 @@ type (
 )
 
 const (
-	ErrorCodeValidation ErrorCode = iota + 2
+	ErrorCodeValidation ErrorCode = iota + 2 // ResultCodeにはSuccessが存在しSuccessが1なので2から始めている
+	ErrorCodeOther
 )
 
 func (oe OriginalError) Error() string {
