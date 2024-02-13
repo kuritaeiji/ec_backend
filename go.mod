@@ -14,6 +14,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/labstack/gommon v0.4.2
 	github.com/stretchr/testify v1.8.4
+	github.com/stripe/stripe-go/v76 v76.16.0
 	github.com/uptrace/bun v1.1.16
 	github.com/uptrace/bun/dialect/mysqldialect v1.1.16
 	github.com/uptrace/bun/extra/bundebug v1.1.16

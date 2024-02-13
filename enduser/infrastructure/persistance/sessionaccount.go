@@ -22,13 +22,23 @@ func NewSessionAccountRepository(redisClient *redis.Client) sessionAccountReposi
 	}
 }
 
-func (sar sessionAccountRepository) Insert(ctx context.Context, sessionAccount entity.SessionAccount, expiration time.Duration, eventPublisher share.DomainEventPublisher) error {
+func (sar sessionAccountRepository) Insert(ctx context.Context, sessionAccount *entity.SessionAccount, expiration time.Duration, eventPublisher share.DomainEventPublisher) error {
 	err := sar.redisClient.Set(ctx, sessionAccount.SessionID, sessionAccount.AccountID, expiration).Err()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	return eventPublisher.Publish(sessionAccount.Events)
+	if eventPublisher == nil {
+		return nil
+	}
+
+	events := sessionAccount.ClearEvents()
+	err = eventPublisher.Publish(events)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
 func (sar sessionAccountRepository) FindBySessionID(ctx context.Context, sessionID string) (entity.SessionAccount, bool, error) {

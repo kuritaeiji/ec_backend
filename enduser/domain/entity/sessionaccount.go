@@ -60,3 +60,9 @@ func CreateSessionAccount(account Account, sessionCartSessionID string, existsSe
 		},
 	}
 }
+
+func (sessionAccount *SessionAccount) ClearEvents() []share.DomainEvent {
+	events := sessionAccount.Events
+	sessionAccount.Events = []share.DomainEvent{}
+	return events
+}

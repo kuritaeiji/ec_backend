@@ -271,17 +271,17 @@ func (suite *productRepositoryTestSuite) TestFindByIds() {
 			Params: params{IDs: []string{"1"}, WithImage: false},
 			Expected: expected{Products: []entity.Product{
 				{
-					ID:           "1",
-					CategoryID:   "1",
-					CategoryName: "カテゴリー1",
-					Name:         "商品名",
-					ReviewScore:  0,
-					Price:        100,
-					SalePrice:    110,
-					Description:  "商品説明",
-					Status:       enum.SalesSuspend,
-					StockCount:   10,
-					Version:      1,
+					ID:             "1",
+					CategoryID:     "1",
+					CategoryName:   "カテゴリー1",
+					Name:           "商品名",
+					ReviewScore:    0,
+					Price:          100,
+					SalePrice:      110,
+					Description:    "商品説明",
+					Status:         enum.SalesSuspend,
+					StockCount:     10,
+					Version:        1,
 					CreateDateTime: date1,
 
 					ProductImages: []entity.ProductImage{

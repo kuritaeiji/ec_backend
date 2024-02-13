@@ -76,7 +76,7 @@ func (as AccountDomainService) CreateAccountByEmail(email string, password strin
 		AuthType:          enum.AuthTypeEmail,
 		ExternalAccountID: nil,
 		IsActive:          false,
-		StripeCustomerId:  nil,
+		StripeCustomerID:  nil,
 		ReviewNickname:    initialReviewNickname,
 		Events:            []share.DomainEvent{event},
 	}, nil
@@ -117,12 +117,17 @@ func (as AccountDomainService) AuthenticateEmail(db bun.IDB, ctx context.Context
 		return entity.Account{}, errors.New("アカウントが見つかりません") // アカウントが見つからない場合はエラー画面を表示したいのでOriginalErrorを使用しない
 	}
 
+	// 既にアカウントが有効化されている場合はエラーメッセージを返却する
+	if account.IsActive {
+		return entity.Account{}, share.OriginalError{Code: share.ErrorCodeOther, Messages: []string{"既にアカウントは有効化されています"}}
+	}
+
 	// アカウントを有効化する
 	account.IsActive = true
 
 	// アカウント有効化イベントを作成する
 	account.Events = append(account.Events, entity.AccountActivatedEvent{
-		Account: account,
+		Account: &account,
 		DB:      db,
 		Ctx:     ctx,
 	})

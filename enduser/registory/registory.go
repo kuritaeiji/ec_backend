@@ -190,17 +190,24 @@ func AddDomainEventPublisherTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
+	err = container.Provide(subscriber.NewCreateStripeCustomerSubscriber)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	err = container.Provide(func() share.DomainEventPublisher {
 		publisher := share.NewDomainEventPublisher()
 		err := container.Invoke(func(
 			sendAuthenticationEmailSubscriber subscriber.SendAuthenticationEmailSubscriber,
 			createCartSubscriber subscriber.CreateCartSubscriber,
 			moveSessionCartProductToCartSubscriber subscriber.MoveSessionCartProductToCartSubscriber,
+			createStripeCustomerSubscriber subscriber.CreateStripeCustomerSubscriber,
 		) {
 			// どのイベントをサブスクライブするかを設定する
 			publisher.Subscribe(sendAuthenticationEmailSubscriber.TargetEvents(), sendAuthenticationEmailSubscriber)
 			publisher.Subscribe(createCartSubscriber.TargetEvents(), createCartSubscriber)
 			publisher.Subscribe(moveSessionCartProductToCartSubscriber.TargetEvents(), moveSessionCartProductToCartSubscriber)
+			publisher.Subscribe(createStripeCustomerSubscriber.TargetEvents(), createStripeCustomerSubscriber)
 		})
 		if err != nil {
 			log.Fatal(errors.WithStack(err))
@@ -252,12 +259,22 @@ func AddAdapterTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
+	err = container.Provide(bridge.NewStripeAdapter, dig.As(new(adapter.StripeAdapter)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	return nil
 }
 
 // モック化されたアダプターをDIコンテナに追加する
 func AddMockAdapterTo(container *dig.Container) error {
 	err := container.Provide(mocks.NewEmailAdapter, dig.As((new(adapter.EmailAdapter))))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(mocks.NewStripeAdapter, dig.As(new(adapter.StripeAdapter)))
 	if err != nil {
 		return errors.WithStack(err)
 	}

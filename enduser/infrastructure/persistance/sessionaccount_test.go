@@ -57,7 +57,7 @@ func (suite *sessionAccountRepositoryTestSuite) TestInsert() {
 	eventPublisherMock.On("Publish", []share.DomainEvent{event}).Return(nil)
 
 	// when（操作）
-	err := suite.sessionAccountRepository.Insert(context.Background(), sessionAccount, expiration, eventPublisherMock)
+	err := suite.sessionAccountRepository.Insert(context.Background(), &sessionAccount, expiration, eventPublisherMock)
 
 	// then（期待する結果）
 	suite.Nil(err)

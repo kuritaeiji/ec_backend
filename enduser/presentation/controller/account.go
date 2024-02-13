@@ -68,7 +68,8 @@ func (ac AccountController) AuthenticateEmail(c echo.Context) error {
 		}
 
 		// TODO エラー画面にリダイレクトさせる
-		return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/error", os.Getenv("FRONT_URL")))
+		return err
+		// return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/error", os.Getenv("FRONT_URL")))
 	}
 
 	// セッションアカウントのセッションIDをCookieとしてセットする

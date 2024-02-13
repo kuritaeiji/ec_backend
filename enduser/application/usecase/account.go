@@ -43,7 +43,7 @@ func (au AccountUsecase) CreateAccountByEmail(ctx context.Context, email string,
 			return err
 		}
 
-		err = au.accountRepository.Insert(tx, ctxt, account, au.domainEventPublisher)
+		err = au.accountRepository.Insert(tx, ctxt, &account, au.domainEventPublisher)
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ func (au AccountUsecase) AuthenticateEmail(ctx context.Context, tokenString stri
 			return err
 		}
 
-		err = au.accountRepository.Update(tx, ctxt, account, au.domainEventPublisher)
+		err = au.accountRepository.Update(tx, ctxt, &account, au.domainEventPublisher)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func (au AccountUsecase) AuthenticateEmail(ctx context.Context, tokenString stri
 		// セッションアカウントを作成する
 		var sessionAccount entity.SessionAccount
 		accountSessionCookie, sessionAccount = entity.CreateSessionAccount(account, sessionCartSessionID, existsSessionCartSessionID, tx, ctxt)
-		err = au.sessionAccountRepository.Insert(ctxt, sessionAccount, entity.SessionAccountExpiration, au.domainEventPublisher)
+		err = au.sessionAccountRepository.Insert(ctxt, &sessionAccount, entity.SessionAccountExpiration, au.domainEventPublisher)
 		return err
 	})
 

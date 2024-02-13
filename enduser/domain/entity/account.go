@@ -17,7 +17,7 @@ type (
 		AuthType          enum.AuthType `json:"authType"`
 		ExternalAccountID *string       `json:"externalAccountID"`
 		IsActive          bool          `json:"isActive"`
-		StripeCustomerId  *string       `json:"stripeCustmerID"`
+		StripeCustomerID  *string       `json:"stripeCustmerID"`
 		ReviewNickname    string        `json:"reviewNickname"`
 
 		Events []share.DomainEvent
@@ -29,7 +29,7 @@ type (
 	}
 	// アカウント有効化イベント
 	AccountActivatedEvent struct {
-		Account Account
+		Account *Account
 		DB      bun.IDB
 		Ctx     context.Context
 	}
@@ -46,4 +46,15 @@ func (ae AccountCreatedByEmailEvent) Name() share.DomainEventName {
 
 func (ae AccountActivatedEvent) Name() share.DomainEventName {
 	return accountActivatedEventName
+}
+
+func (account *Account) SetStripeCustomerID(stripeCustomerID string) {
+	account.StripeCustomerID = &stripeCustomerID
+}
+
+// ドメインイベント配列を削除し、ドメインイベント配列を返却する
+func (account *Account) ClearEvents() []share.DomainEvent {
+	events := account.Events
+	account.Events = []share.DomainEvent{}
+	return events
 }

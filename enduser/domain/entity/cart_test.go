@@ -17,67 +17,67 @@ func TestMoveSessionCartToCart(t *testing.T) {
 	productID2 := "3"
 
 	type params struct {
-		cart entity.Cart
+		cart        entity.Cart
 		sessionCart entity.SessionCart
-		products []entity.Product
+		products    []entity.Product
 	}
 
-	tests := []struct{
-		Name string
-		Params params
+	tests := []struct {
+		Name         string
+		Params       params
 		ExpectedCart entity.Cart
 	}{
 		{
 			Name: "セッションカートに商品が存在しない場合、何もしない",
 			Params: params{
-				cart: entity.Cart{ID: cartID},
+				cart:        entity.Cart{ID: cartID},
 				sessionCart: entity.SessionCart{SessionCartProducts: []entity.SessionCartProduct{}},
-				products: []entity.Product{},
+				products:    []entity.Product{},
 			},
 			ExpectedCart: entity.Cart{ID: cartID},
 		},
 		{
 			Name: "セッションカート内の商品IDと一致する商品集約が存在しない場合、何もしない",
 			Params: params{
-				cart: entity.Cart{ID: cartID},
+				cart:        entity.Cart{ID: cartID},
 				sessionCart: entity.SessionCart{SessionCartProducts: []entity.SessionCartProduct{{ProductID: productID, Count: 1}}},
-				products: []entity.Product{{ID: "2", Status: enum.OnSale, StockCount: 10}},
+				products:    []entity.Product{{ID: "2", Status: enum.OnSale, StockCount: 10}},
 			},
 			ExpectedCart: entity.Cart{ID: cartID},
 		},
 		{
 			Name: "商品ステータスが販売中かつ在庫>=セッションカート商品個数かつ既にカートに同一商品が存在する場合、カート内の商品の個数をセッションカートの商品個数だけ増やす",
 			Params: params{
-				cart: entity.Cart{ID: cartID, CartProducts: []entity.CartProduct{{ID: "1", CartID: cartID, ProductID: productID, Count: 1}}},
+				cart:        entity.Cart{ID: cartID, CartProducts: []entity.CartProduct{{ID: "1", CartID: cartID, ProductID: productID, Count: 1}}},
 				sessionCart: entity.SessionCart{SessionCartProducts: []entity.SessionCartProduct{{ProductID: productID, Count: 1}, {ProductID: productID2, Count: 1}}},
-				products: []entity.Product{{ID: productID, Status: enum.OnSale, StockCount: 1}, {ID: productID2, Status: enum.OnSale, StockCount: 2}},
+				products:    []entity.Product{{ID: productID, Status: enum.OnSale, StockCount: 1}, {ID: productID2, Status: enum.OnSale, StockCount: 2}},
 			},
 			ExpectedCart: entity.Cart{ID: cartID, CartProducts: []entity.CartProduct{{CartID: cartID, ProductID: productID, Count: 2}, {ID: "1", CartID: cartID, ProductID: productID2, Count: 1}}},
 		},
 		{
 			Name: "商品ステータスが販売中かつ1<=在庫数<セッションカートの商品個数かつカートに同一商品が存在しない場合、カート内に在庫数分の商品を追加する",
 			Params: params{
-				cart: entity.Cart{ID: cartID},
+				cart:        entity.Cart{ID: cartID},
 				sessionCart: entity.SessionCart{SessionCartProducts: []entity.SessionCartProduct{{ProductID: productID, Count: 2}, {ProductID: productID2, Count: 3}}},
-				products: []entity.Product{{ID: productID, Status: enum.OnSale, StockCount: 1}, {ID: productID2, Status: enum.OnSale, StockCount: 2}},
+				products:    []entity.Product{{ID: productID, Status: enum.OnSale, StockCount: 1}, {ID: productID2, Status: enum.OnSale, StockCount: 2}},
 			},
 			ExpectedCart: entity.Cart{ID: cartID, CartProducts: []entity.CartProduct{{CartID: cartID, ProductID: productID, Count: 1}, {CartID: cartID, ProductID: productID2, Count: 2}}},
 		},
 		{
 			Name: "商品ステータスが販売中かつ在庫が0かつカートに同一商品が存在しない場合何もしない",
 			Params: params{
-				cart: entity.Cart{ID: cartID},
+				cart:        entity.Cart{ID: cartID},
 				sessionCart: entity.SessionCart{SessionCartProducts: []entity.SessionCartProduct{{ProductID: productID, Count: 1}}},
-				products: []entity.Product{{ID: productID, Status: enum.OnSale, StockCount: 0}},
+				products:    []entity.Product{{ID: productID, Status: enum.OnSale, StockCount: 0}},
 			},
 			ExpectedCart: entity.Cart{ID: cartID, CartProducts: []entity.CartProduct{}},
 		},
 		{
 			Name: "商品ステータスが販売中以外の場合、何もしない",
 			Params: params{
-				cart: entity.Cart{ID: cartID},
+				cart:        entity.Cart{ID: cartID},
 				sessionCart: entity.SessionCart{SessionCartProducts: []entity.SessionCartProduct{{ProductID: "1", Count: 1}, {ProductID: productID2, Count: 1}}},
-				products: []entity.Product{{ID: "1", Status: enum.SalesSuspend, StockCount: 2}, {ID: productID2, Status: enum.SalesEnded, StockCount: 2}},
+				products:    []entity.Product{{ID: "1", Status: enum.SalesSuspend, StockCount: 2}, {ID: productID2, Status: enum.SalesEnded, StockCount: 2}},
 			},
 			ExpectedCart: entity.Cart{ID: cartID, CartProducts: []entity.CartProduct{}},
 		},
