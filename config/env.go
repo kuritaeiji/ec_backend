@@ -15,11 +15,6 @@ func SetupEnv() error {
 		return errors.WithStack(err)
 	}
 
-	err = godotenv.Load("/go/app/env/common.env")
-	if err != nil {
-		return err
-	}
-
 	if env == "dev" || env == "test" {
 		err = godotenv.Load("/go/app/env/secret.env")
 	}

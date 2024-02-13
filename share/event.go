@@ -1,3 +1,4 @@
+//go:generate mockery --name DomainEventPublisher
 package share
 
 import "github.com/cockroachdb/errors"
@@ -11,7 +12,7 @@ type (
 
 	DomainEventPublisher interface {
 		Publish(events []DomainEvent) error
-		Subscribe(event DomainEvent, subscriber DomainEventSubscriber)
+		Subscribe(events []DomainEvent, subscriber DomainEventSubscriber)
 	}
 
 	domainEventPublisher struct {
@@ -20,6 +21,8 @@ type (
 
 	DomainEventSubscriber interface {
 		Subscribe(event DomainEvent) error
+		// 購読するドメインイベント配列を返却する
+		TargetEvents() []DomainEvent
 	}
 )
 
@@ -48,6 +51,8 @@ func (publisher domainEventPublisher) Publish(events []DomainEvent) error {
 	return nil
 }
 
-func (publisher *domainEventPublisher) Subscribe(event DomainEvent, subscriber DomainEventSubscriber) {
-	publisher.subscribers[event.Name()] = append(publisher.subscribers[event.Name()], subscriber)
+func (publisher *domainEventPublisher) Subscribe(events []DomainEvent, subscriber DomainEventSubscriber) {
+	for _, event := range events {
+		publisher.subscribers[event.Name()] = append(publisher.subscribers[event.Name()], subscriber)
+	}
 }

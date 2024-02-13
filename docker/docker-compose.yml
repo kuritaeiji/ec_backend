@@ -14,6 +14,7 @@ services:
     tty: true
     depends_on:
       - mysql
+      - redis
 
   mysql:
     image: mysql:8.0.35-debian
@@ -27,4 +28,17 @@ services:
     volumes:
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - mysql:/var/lib/mysql
     command: mysqld
+
+  redis:
+    image: redis:7.2.4-bookworm
+    tty: true
+    ports:
+      - 6380:6379
+    volumes:
+      - redis:/data
+
+volumes:
+  mysql:
+  redis:

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/entity"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/enum"
 	"github.com/kuritaeiji/ec_backend/share"
@@ -40,20 +41,45 @@ func (ar accountRepository) FindByEmail(db bun.IDB, ctx context.Context, email s
 		return entity.Account{}, false, nil
 	}
 
-	return ar.toEntity(account), true, err
+	return ar.toEntity(account), true, errors.WithStack(err)
 }
 
-func (ar accountRepository) Insert(db bun.IDB, ctx context.Context, account entity.Account, domainEventPublisher share.DomainEventPublisher) error {
-	mAccount := ar.toModel(account)
+func (ar accountRepository) Insert(db bun.IDB, ctx context.Context, account *entity.Account, domainEventPublisher share.DomainEventPublisher) error {
+	mAccount := ar.toModel(*account)
 	_, err := db.NewInsert().Model(&mAccount).Exec(ctx)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
+	}
+
+	if domainEventPublisher == nil {
+		return nil
 	}
 
 	// アカウント集約内のイベントを発行する
-	err = domainEventPublisher.Publish(account.Events)
+	events := account.ClearEvents()
+	err = domainEventPublisher.Publish(events)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+func (ar accountRepository) Update(db bun.IDB, ctx context.Context, account *entity.Account, domainEventPublisher share.DomainEventPublisher) error {
+	mAccout := ar.toModel(*account)
+	_, err := db.NewUpdate().Model(&mAccout).WherePK().Exec(ctx)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if domainEventPublisher == nil {
+		return nil
+	}
+
+	events := account.ClearEvents()
+	err = domainEventPublisher.Publish(events)
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -67,7 +93,7 @@ func (ar accountRepository) toEntity(account Account) entity.Account {
 		AuthType:          enum.AuthType(account.AuthType),
 		ExternalAccountID: account.ExternalAccountID,
 		IsActive:          account.IsActive,
-		StripeCustomerId:  account.StripeCustomerId,
+		StripeCustomerID:  account.StripeCustomerId,
 		ReviewNickname:    account.ReviewNickname,
 	}
 }
@@ -80,7 +106,7 @@ func (ar accountRepository) toModel(account entity.Account) Account {
 		AuthType:          int(account.AuthType),
 		ExternalAccountID: account.ExternalAccountID,
 		IsActive:          account.IsActive,
-		StripeCustomerId:  account.StripeCustomerId,
+		StripeCustomerId:  account.StripeCustomerID,
 		ReviewNickname:    account.ReviewNickname,
 	}
 }

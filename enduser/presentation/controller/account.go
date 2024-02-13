@@ -1,10 +1,14 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/kuritaeiji/ec_backend/enduser/application/usecase"
+	"github.com/kuritaeiji/ec_backend/enduser/domain/entity"
 	"github.com/kuritaeiji/ec_backend/share"
+	"github.com/kuritaeiji/ec_backend/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,6 +22,7 @@ func NewAccountController(accountUsecase usecase.AccountUsecase) AccountControll
 	}
 }
 
+// メールアドレスによる新規アカウント登録時のフォーム
 type AccountCreationForm struct {
 	Email                string `json:"email"`
 	Password             string `json:"password"`
@@ -42,4 +47,32 @@ func (ac AccountController) CreateAccountByEmail(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, share.SuccessResult())
+}
+
+// 新規アカウント登録時のメールアドレスを認証する
+func (ac AccountController) AuthenticateEmail(c echo.Context) error {
+	// クエリパラメータからJWTを取得する
+	tokenString := c.QueryParam("token")
+
+	// セッションカートCookieを取り出す
+	cookie, ok, err := util.CookieUtils.GetCookie(c, entity.SessionCartCookieName)
+	if err != nil {
+		return err
+	}
+
+	// ユースケース層にメールアドレス認証の処理を委譲する
+	accountSessionCookie, err := ac.accountUsecase.AuthenticateEmail(c.Request().Context(), tokenString, cookie.Value, ok)
+	if err != nil {
+		if originalErr, ok := err.(share.OriginalError); ok {
+			return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s?message=%s", os.Getenv("FRONT_URL"), originalErr.Messages[0]))
+		}
+
+		// TODO エラー画面にリダイレクトさせる
+		return err
+		// return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/error", os.Getenv("FRONT_URL")))
+	}
+
+	// セッションアカウントのセッションIDをCookieとしてセットする
+	c.SetCookie(&accountSessionCookie)
+	return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s?message=%s", os.Getenv("FRONT_URL"), "メールアドレスを認証し、ログインしました"))
 }

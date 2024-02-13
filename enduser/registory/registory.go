@@ -9,9 +9,9 @@ import (
 	"github.com/kuritaeiji/ec_backend/enduser/application/usecase"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/adapter"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/adapter/mocks"
-	"github.com/kuritaeiji/ec_backend/enduser/domain/event"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/repository"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/service"
+	"github.com/kuritaeiji/ec_backend/enduser/domain/subscriber"
 	"github.com/kuritaeiji/ec_backend/enduser/infrastructure/bridge"
 	"github.com/kuritaeiji/ec_backend/enduser/infrastructure/persistance"
 	"github.com/kuritaeiji/ec_backend/enduser/presentation/controller"
@@ -128,6 +128,11 @@ func AddDBTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
+	err = container.Provide(config.NewRedisClient)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	return nil
 }
 
@@ -146,6 +151,7 @@ func AddControllerTo(container *dig.Container) error {
 	return nil
 }
 
+// ユースケースをDIコンテナに追加する
 func AddUsecaseTo(container *dig.Container) error {
 	err := container.Provide(usecase.NewAccountUsecase)
 	if err != nil {
@@ -169,15 +175,39 @@ func AddDomainServiceTo(container *dig.Container) error {
 // ドメインイベントパブリッシャーをDIコンテナに追加する
 // 各イベントに対するサブスクライバーを定義する
 func AddDomainEventPublisherTo(container *dig.Container) error {
-	err := container.Provide(event.NewAccountCreatedByEmailSubscriber)
+	err := container.Provide(subscriber.NewAccountCreatedByEmailSubscriber)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(subscriber.NewAccountActivatedEventSubscriber)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(subscriber.NewMoveSessionCartProductToCartSubscriber)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(subscriber.NewCreateStripeCustomerSubscriber)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	err = container.Provide(func() share.DomainEventPublisher {
 		publisher := share.NewDomainEventPublisher()
-		err := container.Invoke(func(subscriber event.AccountCreatedByEmailSubscriber) {
-			event.SubscribeAccountDomainEvent(publisher, subscriber)
+		err := container.Invoke(func(
+			sendAuthenticationEmailSubscriber subscriber.SendAuthenticationEmailSubscriber,
+			createCartSubscriber subscriber.CreateCartSubscriber,
+			moveSessionCartProductToCartSubscriber subscriber.MoveSessionCartProductToCartSubscriber,
+			createStripeCustomerSubscriber subscriber.CreateStripeCustomerSubscriber,
+		) {
+			// どのイベントをサブスクライブするかを設定する
+			publisher.Subscribe(sendAuthenticationEmailSubscriber.TargetEvents(), sendAuthenticationEmailSubscriber)
+			publisher.Subscribe(createCartSubscriber.TargetEvents(), createCartSubscriber)
+			publisher.Subscribe(moveSessionCartProductToCartSubscriber.TargetEvents(), moveSessionCartProductToCartSubscriber)
+			publisher.Subscribe(createStripeCustomerSubscriber.TargetEvents(), createStripeCustomerSubscriber)
 		})
 		if err != nil {
 			log.Fatal(errors.WithStack(err))
@@ -199,6 +229,26 @@ func AddRepositoryTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
+	err = container.Provide(persistance.NewCartRepository, dig.As(new(repository.CartRepository)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(persistance.NewProductRepository, dig.As(new(repository.ProductRepository)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(persistance.NewSessionAccountRepository, dig.As(new(repository.SessionAccountRepository)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(persistance.NewSessionCartRepository, dig.As(new(repository.SessionCartRepository)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	return nil
 }
 
@@ -209,12 +259,22 @@ func AddAdapterTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
+	err = container.Provide(bridge.NewStripeAdapter, dig.As(new(adapter.StripeAdapter)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	return nil
 }
 
 // モック化されたアダプターをDIコンテナに追加する
 func AddMockAdapterTo(container *dig.Container) error {
 	err := container.Provide(mocks.NewEmailAdapter, dig.As((new(adapter.EmailAdapter))))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(mocks.NewStripeAdapter, dig.As(new(adapter.StripeAdapter)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -230,6 +290,11 @@ func AddUtilsTo(container *dig.Container) error {
 	}
 
 	err = container.Provide(util.NewValidationUtils, dig.As(new(util.ValidationUtils)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(util.NewTimeUtils, dig.As(new(util.TimeUtils)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
