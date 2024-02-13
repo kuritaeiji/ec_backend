@@ -11,7 +11,7 @@ type (
 		AccountID string
 		Version   int
 
-		CartProducts []CartProduct
+		CartProducts []CartProduct // TODO ポインター型にする CartProductを更新できるようにするため
 	}
 
 	//カート商品
@@ -44,7 +44,7 @@ func (cart *Cart) MoveSessionCartProductsToCart(sessionCart SessionCart, product
 		}
 
 		//カート集約内にセッションカートの商品と一致する商品が存在する場合取得する
-		cartProduct, ok := cart.findCartProduct(sessionCartProduct.ProductID)
+		cartProduct, index, ok := cart.findCartProductByProductID(sessionCartProduct.ProductID)
 
 		// 商品が販売中の場合のみセッションカートに商品を追加する
 		if product.isOnSale() {
@@ -53,6 +53,7 @@ func (cart *Cart) MoveSessionCartProductsToCart(sessionCart SessionCart, product
 				// 既に同じ商品がカート内に存在する場合はカート内の商品の個数にセッションカートの商品の個数分だけ追加する
 				if ok {
 					cartProduct.Count += sessionCartProduct.Count
+					cart.CartProducts[index] = cartProduct
 				} else {
 					// 同じ商品がカート内に存在しない場合はカート内の商品をセッションカートの商品の個数分だけ追加する
 					cart.CartProducts = append(cart.CartProducts, CartProduct{
@@ -70,6 +71,7 @@ func (cart *Cart) MoveSessionCartProductsToCart(sessionCart SessionCart, product
 				// 既に同じ商品がカート内に存在する場合はカート内の商品の個数に在庫数だけ追加する
 				if ok {
 					cartProduct.Count += product.StockCount
+					cart.CartProducts[index] = cartProduct
 				} else {
 					// 同じ商品がカート内に存在しない場合はカート内の商品を在庫数分だけ追加する
 					cart.CartProducts = append(cart.CartProducts, CartProduct{
@@ -88,14 +90,14 @@ func (cart *Cart) MoveSessionCartProductsToCart(sessionCart SessionCart, product
 }
 
 // 引数productIDに一致するカート内の商品を返却する
-func (cart Cart) findCartProduct(productID string) (CartProduct, bool) {
-	for _, cartProduct := range cart.CartProducts {
-		if cartProduct.ID == productID {
-			return cartProduct, true
+func (cart Cart) findCartProductByProductID(productID string) (CartProduct, int, bool) {
+	for i, cartProduct := range cart.CartProducts {
+		if cartProduct.ProductID == productID {
+			return cartProduct, i, true
 		}
 	}
 
-	return CartProduct{}, false
+	return CartProduct{}, 0, false
 }
 
 // 引数productsから引数productIDに一致する商品を返却する

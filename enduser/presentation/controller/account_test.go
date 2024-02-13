@@ -202,7 +202,7 @@ func (suite *accountControllerTestSuite) TestCreateAccountSuccess() {
 
 		emailAdapterMock, ok := emailAdapter.(*mocks.EmailAdapter)
 		if !ok {
-			suite.FailNow("EmailAdapterを*mocksEmailAdapter似型アサーションできませんでした")
+			suite.FailNow("EmailAdapterを*mocksEmailAdapterに型アサーションできませんでした")
 		}
 
 		emailAdapterMock.On("SendEmail", bridge.From, email, "認証メール", mock.MatchedBy(func(text string) bool {

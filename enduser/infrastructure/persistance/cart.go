@@ -97,7 +97,7 @@ func (cr cartRepository) Update(db bun.IDB, ctx context.Context, cart entity.Car
 }
 
 func (cr cartRepository) toModel(cart entity.Cart) Cart {
-	cartProducts := make([]CartProduct, len(cart.CartProducts))
+	cartProducts := make([]CartProduct, 0, len(cart.CartProducts))
 	for _, p := range cart.CartProducts {
 		cartProducts = append(cartProducts, CartProduct{
 			ID:        p.ID,
@@ -116,7 +116,7 @@ func (cr cartRepository) toModel(cart entity.Cart) Cart {
 }
 
 func (cr cartRepository) toEntity(cart Cart) entity.Cart {
-	cartProducts := make([]entity.CartProduct, len(cart.CartProducts))
+	cartProducts := make([]entity.CartProduct, 0, len(cart.CartProducts))
 	for _, cartProduct := range cart.CartProducts {
 		cartProducts = append(cartProducts, entity.CartProduct{
 			ID:        cartProduct.ID,

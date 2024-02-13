@@ -31,25 +31,25 @@ func (sar sessionAccountRepository) Insert(ctx context.Context, sessionAccount e
 	return eventPublisher.Publish(sessionAccount.Events)
 }
 
-func (sar sessionAccountRepository) FindBySessionID(ctx context.Context, sessionID string) (entity.SessionAccount, error) {
+func (sar sessionAccountRepository) FindBySessionID(ctx context.Context, sessionID string) (entity.SessionAccount, bool, error) {
 	accountID, err := sar.redisClient.Get(ctx, sessionID).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			// セッションIDが見つからない場合
-			return entity.SessionAccount{}, ErrSessionNotFound
+			return entity.SessionAccount{}, false, nil
 		}
 
 		// その他のエラーの場合
-		return entity.SessionAccount{}, errors.WithStack(err)
+		return entity.SessionAccount{}, false, errors.WithStack(err)
 	}
 
-	// 有効期限が切れている場合
+	// セッションIDが見つからない場合
 	if accountID == "" {
-		return entity.SessionAccount{}, ErrSessionExpired
+		return entity.SessionAccount{}, false, nil
 	}
 
 	return entity.SessionAccount{
 		SessionID: sessionID,
 		AccountID: accountID,
-	}, nil
+	}, true, nil
 }

@@ -67,9 +67,13 @@ func (subscriber MoveSessionCartProductToCartSubscriber) Subscribe(event share.D
 	}
 
 	// セッションカートを取得する
-	sessionCart, err := subscriber.sessionCartRepository.FindBySessionID(sessionAccountCreatedEvent.Ctx, sessionAccountCreatedEvent.SessionCartSessionID)
+	sessionCart, ok, err := subscriber.sessionCartRepository.FindBySessionID(sessionAccountCreatedEvent.Ctx, sessionAccountCreatedEvent.SessionCartSessionID)
 	if err != nil {
 		return err
+	}
+	if !ok {
+		// セッションカートが存在しない場合はreturnする
+		return nil
 	}
 
 	// セッションカート内に商品が存在しない場合はreturnする

@@ -32,32 +32,32 @@ func NewSessionCartRepository(redisClient *redis.Client) sessionCartRepository {
 	}
 }
 
-func (scr sessionCartRepository) FindBySessionID(ctx context.Context, sessionID string) (entity.SessionCart, error) {
+func (scr sessionCartRepository) FindBySessionID(ctx context.Context, sessionID string) (entity.SessionCart, bool, error) {
 	// Redisからセッションカート情報を取得
 	data, err := scr.redisClient.Get(ctx, sessionID).Bytes()
 	if err != nil {
 		// セッションIDが見つからない場合
 		if errors.Is(err, redis.Nil) {
-			return entity.SessionCart{}, errors.WithStack(ErrSessionNotFound)
+			return entity.SessionCart{}, false, nil
 		}
 
 		// その他のエラーの場合
-		return entity.SessionCart{}, err
+		return entity.SessionCart{}, false, errors.WithStack(err)
 	}
 
-	// 有効期限が切れている場合
+	// セッションIDが見つからない場合
 	if data == nil {
-		return entity.SessionCart{}, errors.WithStack(ErrSessionExpired)
+		return entity.SessionCart{}, false, nil
 	}
 
 	// JSONデコードしてセッションカート構造体に変換
 	var sessionCart SessionCart
 	err = json.Unmarshal(data, &sessionCart)
 	if err != nil {
-		return entity.SessionCart{}, err
+		return entity.SessionCart{}, false, err
 	}
 
-	return scr.toEntity(sessionCart, sessionID), nil
+	return scr.toEntity(sessionCart, sessionID), true, nil
 }
 
 func (src sessionCartRepository) Delete(ctx context.Context, sessionCart entity.SessionCart) error {
@@ -66,7 +66,7 @@ func (src sessionCartRepository) Delete(ctx context.Context, sessionCart entity.
 }
 
 func (scr sessionCartRepository) toEntity(sessionCart SessionCart, sessionID string) entity.SessionCart {
-	sessionCartProducts := make([]entity.SessionCartProduct, len(sessionCart.SessionCartProducts))
+	sessionCartProducts := make([]entity.SessionCartProduct, 0, len(sessionCart.SessionCartProducts))
 	for _, p := range sessionCart.SessionCartProducts {
 		sessionCartProducts = append(sessionCartProducts, entity.SessionCartProduct{
 			ProductID: p.ProductID,
@@ -81,7 +81,7 @@ func (scr sessionCartRepository) toEntity(sessionCart SessionCart, sessionID str
 }
 
 // func (scr sessionCartRepository) toModel(sessionCart entity.SessionCart) SessionCart {
-// 	sessionCartProducts := make([]SessionCartProduct, len(sessionCart.SessionCartProducts))
+// 	sessionCartProducts := make([]SessionCartProduct, 0, len(sessionCart.SessionCartProducts))
 // 	for _, p := range sessionCart.SessionCartProducts {
 // 		sessionCartProducts = append(sessionCartProducts, SessionCartProduct{
 // 			ProductID: p.ProductID,

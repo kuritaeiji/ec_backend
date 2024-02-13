@@ -1,3 +1,4 @@
+//go:generate mockery --name DomainEventPublisher
 package share
 
 import "github.com/cockroachdb/errors"

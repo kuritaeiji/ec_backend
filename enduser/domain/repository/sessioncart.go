@@ -7,6 +7,6 @@ import (
 )
 
 type SessionCartRepository interface {
-	FindBySessionID(ctx context.Context, sessionID string) (entity.SessionCart, error)
+	FindBySessionID(ctx context.Context, sessionID string) (entity.SessionCart, bool, error)
 	Delete(ctx context.Context, sessionCart entity.SessionCart) error
 }

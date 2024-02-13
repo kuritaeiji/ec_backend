@@ -27,11 +27,11 @@ func NewAccountUsecase(
 	db bun.IDB,
 ) AccountUsecase {
 	return AccountUsecase{
-		accountDomainService: accountDomainService,
-		accountRepository:    accountRepository,
+		accountDomainService:     accountDomainService,
+		accountRepository:        accountRepository,
 		sessionAccountRepository: sessionAccountRepository,
-		domainEventPublisher: domainEventPublisher,
-		db:                   db,
+		domainEventPublisher:     domainEventPublisher,
+		db:                       db,
 	}
 }
 

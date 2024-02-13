@@ -277,6 +277,11 @@ func AddUtilsTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
+	err = container.Provide(util.NewTimeUtils, dig.As(new(util.TimeUtils)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	return nil
 }
 
