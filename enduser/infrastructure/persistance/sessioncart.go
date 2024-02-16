@@ -3,6 +3,7 @@ package persistance
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/cockroachdb/errors"
 	"github.com/go-redis/redis/v8"
@@ -62,6 +63,12 @@ func (scr sessionCartRepository) FindBySessionID(ctx context.Context, sessionID 
 
 func (src sessionCartRepository) Delete(ctx context.Context, sessionCart entity.SessionCart) error {
 	err := src.redisClient.Del(ctx, sessionCart.SessionID).Err()
+	return errors.WithStack(err)
+}
+
+// セションカートの有効期限を更新する
+func (scr sessionCartRepository) UpdateExpiration(ctx context.Context, sessionCart entity.SessionCart, expiration time.Duration) error {
+	err := scr.redisClient.Expire(ctx, sessionCart.SessionID, expiration).Err()
 	return errors.WithStack(err)
 }
 

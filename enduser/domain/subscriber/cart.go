@@ -61,20 +61,12 @@ func (subscriber MoveSessionCartProductToCartSubscriber) TargetEvents() []share.
 func (subscriber MoveSessionCartProductToCartSubscriber) Subscribe(event share.DomainEvent) error {
 	sessionAccountCreatedEvent := event.(entity.SessionAccountCreatedEvent)
 
-	// セッションカートのセッションIDがCookieとして存在しない場合、returnする
-	if !sessionAccountCreatedEvent.ExistsSessionCartSessionID {
+	// セッションカート存在しない場合、returnする
+	if !sessionAccountCreatedEvent.ExistsSessionCart {
 		return nil
 	}
 
-	// セッションカートを取得する
-	sessionCart, ok, err := subscriber.sessionCartRepository.FindBySessionID(sessionAccountCreatedEvent.Ctx, sessionAccountCreatedEvent.SessionCartSessionID)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		// セッションカートが存在しない場合はreturnする
-		return nil
-	}
+	sessionCart := sessionAccountCreatedEvent.SessionCart
 
 	// セッションカート内に商品が存在しない場合はreturnする
 	if len(sessionCart.SessionCartProducts) > 0 {

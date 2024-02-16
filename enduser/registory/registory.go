@@ -15,6 +15,7 @@ import (
 	"github.com/kuritaeiji/ec_backend/enduser/infrastructure/bridge"
 	"github.com/kuritaeiji/ec_backend/enduser/infrastructure/persistance"
 	"github.com/kuritaeiji/ec_backend/enduser/presentation/controller"
+	"github.com/kuritaeiji/ec_backend/enduser/presentation/middleware"
 	"github.com/kuritaeiji/ec_backend/share"
 	"github.com/kuritaeiji/ec_backend/util"
 	"github.com/stretchr/testify/mock"
@@ -62,6 +63,11 @@ func NewContainer() (*dig.Container, error) {
 	}
 
 	err = AddUtilsTo(container)
+	if err != nil {
+		return nil, err
+	}
+
+	err = AddMiddlewareTo(container)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +124,11 @@ func NewTestContainer(t *testing.T) (*dig.Container, error) {
 		return nil, err
 	}
 
+	err = AddMiddlewareTo(container)
+	if err != nil {
+		return nil, err
+	}
+
 	return container, nil
 }
 
@@ -136,6 +147,21 @@ func AddDBTo(container *dig.Container) error {
 	return nil
 }
 
+// ミドルウェアをDIコンテナに実行する
+func AddMiddlewareTo(container *dig.Container) error {
+	err := container.Provide(middleware.NewSessionMiddleware)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(middleware.NewRequireLoginMiddleware)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return err
+}
+
 // コントローラーをDIコンテナに追加する
 func AddControllerTo(container *dig.Container) error {
 	err := container.Provide(controller.NewHealthcheckController)
@@ -148,12 +174,22 @@ func AddControllerTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
+	err = container.Provide(controller.NewSessionAccountControler)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	return nil
 }
 
 // ユースケースをDIコンテナに追加する
 func AddUsecaseTo(container *dig.Container) error {
 	err := container.Provide(usecase.NewAccountUsecase)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(usecase.NewSessionAccountUsecase)
 	if err != nil {
 		return errors.WithStack(err)
 	}

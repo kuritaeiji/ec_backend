@@ -10,8 +10,8 @@ import (
 
 // アカウント有効化時にStripeのカスタマーを作成し、アカウント集約のストライプ顧客IDを更新する
 type CreateStripeCustomerSubscriber struct {
-	stripeAdapter        adapter.StripeAdapter
-	accountRepository    repository.AccountRepository
+	stripeAdapter     adapter.StripeAdapter
+	accountRepository repository.AccountRepository
 }
 
 func NewCreateStripeCustomerSubscriber(
@@ -19,8 +19,8 @@ func NewCreateStripeCustomerSubscriber(
 	accountRepository repository.AccountRepository,
 ) CreateStripeCustomerSubscriber {
 	return CreateStripeCustomerSubscriber{
-		stripeAdapter:        stripeAdapter,
-		accountRepository:    accountRepository,
+		stripeAdapter:     stripeAdapter,
+		accountRepository: accountRepository,
 	}
 }
 

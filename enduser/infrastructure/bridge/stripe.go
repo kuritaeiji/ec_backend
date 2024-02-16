@@ -8,7 +8,7 @@ import (
 	"github.com/stripe/stripe-go/v76/customer"
 )
 
-type stripeAdapter struct{
+type stripeAdapter struct {
 	secretKey string
 }
 

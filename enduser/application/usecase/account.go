@@ -7,6 +7,7 @@ import (
 	"github.com/kuritaeiji/ec_backend/enduser/domain/entity"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/repository"
 	"github.com/kuritaeiji/ec_backend/enduser/domain/service"
+	"github.com/kuritaeiji/ec_backend/enduser/presentation/middleware"
 	"github.com/kuritaeiji/ec_backend/share"
 	"github.com/uptrace/bun"
 )
@@ -55,7 +56,7 @@ func (au AccountUsecase) CreateAccountByEmail(ctx context.Context, email string,
 }
 
 // 新規アカウント登録時のメールアドレスを認証する
-func (au AccountUsecase) AuthenticateEmail(ctx context.Context, tokenString string, sessionCartSessionID string, existsSessionCartSessionID bool) (http.Cookie, error) {
+func (au AccountUsecase) AuthenticateEmail(ctx context.Context, tokenString string) (http.Cookie, error) {
 	var accountSessionCookie http.Cookie
 	err := au.db.RunInTx(ctx, nil, func(ctxt context.Context, tx bun.Tx) error {
 		// アカウントのメールアドレス認証とアカウントの有効化を行う
@@ -70,8 +71,9 @@ func (au AccountUsecase) AuthenticateEmail(ctx context.Context, tokenString stri
 		}
 
 		// セッションアカウントを作成する
+		sessionCart, existsSessionCart := middleware.SessionCartFromContext(ctx)
 		var sessionAccount entity.SessionAccount
-		accountSessionCookie, sessionAccount = entity.CreateSessionAccount(account, sessionCartSessionID, existsSessionCartSessionID, tx, ctxt)
+		accountSessionCookie, sessionAccount = entity.CreateSessionAccount(account, sessionCart, existsSessionCart, tx, ctxt)
 		err = au.sessionAccountRepository.Insert(ctxt, &sessionAccount, entity.SessionAccountExpiration, au.domainEventPublisher)
 		return err
 	})

@@ -63,3 +63,15 @@ func (sar sessionAccountRepository) FindBySessionID(ctx context.Context, session
 		AccountID: accountID,
 	}, true, nil
 }
+
+// セションアカウントの有効期限を更新する
+func (sar sessionAccountRepository) UpdateExpiration(ctx context.Context, sessionAccount entity.SessionAccount, expiration time.Duration) error {
+	err := sar.redisClient.Expire(ctx, sessionAccount.SessionID, expiration).Err()
+	return errors.WithStack(err)
+}
+
+// セッションアカウントを削除する
+func (sar sessionAccountRepository) Delete(ctx context.Context, sessionAccount entity.SessionAccount) error {
+	err := sar.redisClient.Del(ctx, sessionAccount.SessionID).Err()
+	return errors.WithStack(err)
+}

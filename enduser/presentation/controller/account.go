@@ -6,9 +6,7 @@ import (
 	"os"
 
 	"github.com/kuritaeiji/ec_backend/enduser/application/usecase"
-	"github.com/kuritaeiji/ec_backend/enduser/domain/entity"
 	"github.com/kuritaeiji/ec_backend/share"
-	"github.com/kuritaeiji/ec_backend/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -54,14 +52,8 @@ func (ac AccountController) AuthenticateEmail(c echo.Context) error {
 	// クエリパラメータからJWTを取得する
 	tokenString := c.QueryParam("token")
 
-	// セッションカートCookieを取り出す
-	cookie, ok, err := util.CookieUtils.GetCookie(c, entity.SessionCartCookieName)
-	if err != nil {
-		return err
-	}
-
 	// ユースケース層にメールアドレス認証の処理を委譲する
-	accountSessionCookie, err := ac.accountUsecase.AuthenticateEmail(c.Request().Context(), tokenString, cookie.Value, ok)
+	accountSessionCookie, err := ac.accountUsecase.AuthenticateEmail(c.Request().Context(), tokenString)
 	if err != nil {
 		if originalErr, ok := err.(share.OriginalError); ok {
 			return c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s?message=%s", os.Getenv("FRONT_URL"), originalErr.Messages[0]))

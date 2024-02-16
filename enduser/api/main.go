@@ -11,6 +11,7 @@ import (
 
 	"github.com/kuritaeiji/ec_backend/config"
 	"github.com/kuritaeiji/ec_backend/enduser/presentation/handler"
+	"github.com/kuritaeiji/ec_backend/enduser/presentation/middleware"
 	"github.com/kuritaeiji/ec_backend/enduser/registory"
 	"github.com/labstack/echo/v4"
 )
@@ -35,11 +36,16 @@ func main() {
 		e.Logger.Fatal("コンテナ作成失敗\n", fmt.Sprintf("%+v", err))
 	}
 
+	e, loginG, err := middleware.SetupMiddleware(e, container)
+	if err != nil {
+		e.Logger.Fatal("ミドルウェア設定失敗\n", fmt.Sprintf("%+v", err))
+	}
+
 	// エラーハンドラー設定
 	e.HTTPErrorHandler = customHTTPErrorHandler
 
 	// ハンドラー設定
-	err = handler.SetupHandlers(e, container)
+	err = handler.SetupHandlers(e, loginG, container)
 	if err != nil {
 		e.Logger.Fatal("ハンドラー設定失敗\n", fmt.Sprintf("+%v", err))
 	}
