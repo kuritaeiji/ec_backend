@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type RequireLoginMiddleware struct {}
+type RequireLoginMiddleware struct{}
 
 func NewRequireLoginMiddleware() RequireLoginMiddleware {
 	return RequireLoginMiddleware{}

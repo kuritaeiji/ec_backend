@@ -21,11 +21,11 @@ type (
 
 	// セッションアカウント作成イベント
 	SessionAccountCreatedEvent struct {
-		AccountID                  string
-		SessionCart     SessionCart
+		AccountID         string
+		SessionCart       SessionCart
 		ExistsSessionCart bool
-		DB                         bun.IDB
-		Ctx                        context.Context
+		DB                bun.IDB
+		Ctx               context.Context
 	}
 )
 
@@ -51,11 +51,11 @@ func CreateSessionAccount(account Account, sessionCart SessionCart, existsSessio
 		SessionID: sessionID,
 		Events: []share.DomainEvent{
 			SessionAccountCreatedEvent{
-				AccountID:                  account.ID,
+				AccountID:         account.ID,
 				SessionCart:       sessionCart,
 				ExistsSessionCart: existsSessionCart,
-				DB:                         db,
-				Ctx:                        ctx,
+				DB:                db,
+				Ctx:               ctx,
 			},
 		},
 	}

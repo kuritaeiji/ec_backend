@@ -15,12 +15,12 @@ type (
 	}
 
 	LoginByEmailAndPasswordForm struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 )
 
-func NewSessionControler(sessionAccountUsecase usecase.SessionAccountUsecase) SessionAccountController {
+func NewSessionAccountControler(sessionAccountUsecase usecase.SessionAccountUsecase) SessionAccountController {
 	return SessionAccountController{
 		sessionAccountUsecase: sessionAccountUsecase,
 	}
@@ -59,4 +59,3 @@ func (sac SessionAccountController) Logout(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, share.SuccessResult())
 }
-

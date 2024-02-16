@@ -11,12 +11,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type SessionMiddleware struct {
-	sessionAccountRepository repository.SessionAccountRepository
-	sessionCartRepository repository.SessionCartRepository
-	timeUtils util.TimeUtils
-	logger echo.Logger
-}
+type (
+	SessionMiddleware struct {
+		sessionAccountRepository repository.SessionAccountRepository
+		sessionCartRepository    repository.SessionCartRepository
+		timeUtils                util.TimeUtils
+		logger                   echo.Logger
+	}
+
+	ContextKey string
+)
 
 func NewSessionMiddleware(
 	sessionAccountRepository repository.SessionAccountRepository,
@@ -26,9 +30,9 @@ func NewSessionMiddleware(
 ) SessionMiddleware {
 	return SessionMiddleware{
 		sessionAccountRepository: sessionAccountRepository,
-		sessionCartRepository: sessionCartRepository,
-		timeUtils: timeUtils,
-		logger: logger,
+		sessionCartRepository:    sessionCartRepository,
+		timeUtils:                timeUtils,
+		logger:                   logger,
 	}
 }
 
@@ -47,7 +51,7 @@ func (m SessionMiddleware) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// セッションアカウントが存在し、セッションアカウントの有効期限が1週間未満の場合、有効期限を2週間に伸ばす
-		if existsSessionAccount && sessionAccountCookie.Expires.Before(m.timeUtils.NowJP().Add(7 * 24 * time.Hour)) {
+		if existsSessionAccount && sessionAccountCookie.Expires.Before(m.timeUtils.NowJP().Add(7*24*time.Hour)) {
 			sessionAccountCookie.Expires = m.timeUtils.NowJP().Add(entity.SessionAccountExpiration)
 			err := m.sessionAccountRepository.UpdateExpiration(ctx, sessionAccount, entity.SessionAccountExpiration)
 			if err == nil {
@@ -76,7 +80,7 @@ func (m SessionMiddleware) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// セッションカートが存在し、セッションカートの有効期限が2週間未満の場合、有効期限を30日に伸ばす
-		if existsSessionCart && sessionCartCookie.Expires.Before(m.timeUtils.NowJP().Add(14 * 24 * time.Hour)) {
+		if existsSessionCart && sessionCartCookie.Expires.Before(m.timeUtils.NowJP().Add(14*24*time.Hour)) {
 			sessionCartCookie.Expires = m.timeUtils.NowJP().Add(entity.SessionCartExpiration)
 			err := m.sessionCartRepository.UpdateExpiration(ctx, sessionCart, entity.SessionCartExpiration)
 			if err == nil {
@@ -145,8 +149,8 @@ func (m SessionMiddleware) getSessionCart(c echo.Context, ctx context.Context) (
 }
 
 const (
-	sessionAccountCtxKey = "SessionAccountCtx"
-	sessionCartCtxKey = "SessionCartCtx"
+	sessionAccountCtxKey ContextKey = "SessionAccountCtx"
+	sessionCartCtxKey    ContextKey = "SessionCartCtx"
 )
 
 // セッションアカウントをContextに登録する

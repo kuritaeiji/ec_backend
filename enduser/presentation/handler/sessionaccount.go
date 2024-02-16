@@ -8,7 +8,7 @@ import (
 )
 
 func setupSessionAccountHandler(e *echo.Echo, loginG *echo.Group, container *dig.Container) error {
-	err := container.Invoke(func (sessionAccountController controller.SessionAccountController)  {
+	err := container.Invoke(func(sessionAccountController controller.SessionAccountController) {
 		e.GET("/login", sessionAccountController.LoginByEmailAndPassword)
 		loginG.DELETE("/logout", sessionAccountController.Logout)
 	})

@@ -162,7 +162,6 @@ func AddMiddlewareTo(container *dig.Container) error {
 	return err
 }
 
-
 // コントローラーをDIコンテナに追加する
 func AddControllerTo(container *dig.Container) error {
 	err := container.Provide(controller.NewHealthcheckController)
@@ -175,7 +174,7 @@ func AddControllerTo(container *dig.Container) error {
 		return errors.WithStack(err)
 	}
 
-	err = container.Provide(controller.NewSessionControler)
+	err = container.Provide(controller.NewSessionAccountControler)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -186,6 +185,11 @@ func AddControllerTo(container *dig.Container) error {
 // ユースケースをDIコンテナに追加する
 func AddUsecaseTo(container *dig.Container) error {
 	err := container.Provide(usecase.NewAccountUsecase)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = container.Provide(usecase.NewSessionAccountUsecase)
 	if err != nil {
 		return errors.WithStack(err)
 	}

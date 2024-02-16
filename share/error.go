@@ -19,7 +19,7 @@ const (
 
 func CreateOriginalError(code ErrorCode, messages []string) OriginalError {
 	return OriginalError{
-		Code: code,
+		Code:     code,
 		Messages: messages,
 	}
 }

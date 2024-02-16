@@ -36,7 +36,10 @@ func main() {
 		e.Logger.Fatal("コンテナ作成失敗\n", fmt.Sprintf("%+v", err))
 	}
 
-	e, loginG := middleware.SetupMiddleware(e, container)
+	e, loginG, err := middleware.SetupMiddleware(e, container)
+	if err != nil {
+		e.Logger.Fatal("ミドルウェア設定失敗\n", fmt.Sprintf("%+v", err))
+	}
 
 	// エラーハンドラー設定
 	e.HTTPErrorHandler = customHTTPErrorHandler

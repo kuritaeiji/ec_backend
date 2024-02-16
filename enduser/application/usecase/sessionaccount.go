@@ -16,9 +16,9 @@ import (
 type (
 	SessionAccountUsecase struct {
 		sessionAccountRepository repository.SessionAccountRepository
-		accountRepository repository.AccountRepository
-		domainEventPublisher share.DomainEventPublisher
-		db bun.IDB
+		accountRepository        repository.AccountRepository
+		domainEventPublisher     share.DomainEventPublisher
+		db                       bun.IDB
 	}
 )
 
@@ -32,9 +32,9 @@ func NewSessionAccountUsecase(
 ) SessionAccountUsecase {
 	return SessionAccountUsecase{
 		sessionAccountRepository: sessionAccountRepository,
-		accountRepository: accountRepository,
-		domainEventPublisher: domainEventPublisher,
-		db: db,
+		accountRepository:        accountRepository,
+		domainEventPublisher:     domainEventPublisher,
+		db:                       db,
 	}
 }
 
