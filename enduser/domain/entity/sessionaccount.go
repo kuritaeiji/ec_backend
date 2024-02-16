@@ -22,8 +22,8 @@ type (
 	// セッションアカウント作成イベント
 	SessionAccountCreatedEvent struct {
 		AccountID                  string
-		SessionCartSessionID       string
-		ExistsSessionCartSessionID bool
+		SessionCart     SessionCart
+		ExistsSessionCart bool
 		DB                         bun.IDB
 		Ctx                        context.Context
 	}
@@ -40,7 +40,7 @@ func (event SessionAccountCreatedEvent) Name() share.DomainEventName {
 }
 
 // セッションアカウントを作成する
-func CreateSessionAccount(account Account, sessionCartSessionID string, existsSessionCartSessionID bool, db bun.IDB, ctx context.Context) (http.Cookie, SessionAccount) {
+func CreateSessionAccount(account Account, sessionCart SessionCart, existsSessionCart bool, db bun.IDB, ctx context.Context) (http.Cookie, SessionAccount) {
 	// Cookieを作成する
 	sessionID := util.IDutils.GenerateID()
 	cookie := util.CookieUtils.CreateCookie(SessionAccountCookieName, sessionID, time.Now().Add(SessionAccountExpiration))
@@ -52,8 +52,8 @@ func CreateSessionAccount(account Account, sessionCartSessionID string, existsSe
 		Events: []share.DomainEvent{
 			SessionAccountCreatedEvent{
 				AccountID:                  account.ID,
-				SessionCartSessionID:       sessionCartSessionID,
-				ExistsSessionCartSessionID: existsSessionCartSessionID,
+				SessionCart:       sessionCart,
+				ExistsSessionCart: existsSessionCart,
 				DB:                         db,
 				Ctx:                        ctx,
 			},

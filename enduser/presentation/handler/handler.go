@@ -6,13 +6,18 @@ import (
 )
 
 // ハンドラーのセットアップ
-func SetupHandlers(e *echo.Echo, container *dig.Container) error {
+func SetupHandlers(e *echo.Echo, loginG *echo.Group, container *dig.Container) error {
 	err := setupHealthcheckHandler(e, container)
 	if err != nil {
 		return err
 	}
 
 	err = setupAccountHandler(e, container)
+	if err != nil {
+		return err
+	}
+
+	err = setupSessionAccountHandler(e, loginG, container)
 	if err != nil {
 		return err
 	}
