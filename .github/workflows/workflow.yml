@@ -18,7 +18,7 @@ jobs:
       mysql:
         image: mysql:8.0.35-debian
         env:
-          MYSQL_EMPTY_PASSWORD: 'yes'
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
           MYSQL_DATABASE: 'ec_db_test'
         ports:
           - 3306:3306
