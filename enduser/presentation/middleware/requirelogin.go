@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"net/http"
+
 	"github.com/kuritaeiji/ec_backend/share"
 	"github.com/labstack/echo/v4"
 )
@@ -16,7 +18,7 @@ func (m RequireLoginMiddleware) Middleware(next echo.HandlerFunc) echo.HandlerFu
 	return func(c echo.Context) error {
 		_, ok := SessionAccountFromContext(c.Request().Context())
 		if !ok {
-			return share.CreateOriginalError(share.ErrorCodeNoLogin, []string{"ログインしてください"})
+			return c.JSON(http.StatusOK, share.OriginalErrorToResult(share.CreateOriginalError(share.ErrorCodeNoLogin, []string{"ログインしてください"})))
 		}
 
 		return next(c)

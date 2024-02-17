@@ -18,6 +18,13 @@ import (
 
 // コントローラーからerror型が返却された場合のハンドラー（ログ出力し、500レスポンスを返却する）
 func customHTTPErrorHandler(err error, c echo.Context) {
+	// 存在しないパスにアクセスした場合、404レスポンスを返却しログ出力しない
+	httpErr, ok := err.(*echo.HTTPError)
+	if ok && httpErr.Code == http.StatusNotFound {
+		c.Response().Writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	c.Logger().Error(fmt.Sprintf("%+v", err))
 	c.Response().Writer.WriteHeader(http.StatusInternalServerError)
 }
