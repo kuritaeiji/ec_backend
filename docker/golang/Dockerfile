@@ -2,6 +2,7 @@
 FROM golang:1.21.4-bullseye as dev
 
 WORKDIR /go/app
+ENV WD=/go/app
 
 RUN apt update
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
@@ -28,6 +29,7 @@ USER 1001
 
 ENV ENV=pro
 ENV TZ=Asia/Tokyo
+ENV WD=/go/app
 
 WORKDIR /go/app
 

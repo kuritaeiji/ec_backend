@@ -10,13 +10,14 @@ import (
 
 func SetupEnv() error {
 	env := os.Getenv("ENV")
-	err := godotenv.Load(fmt.Sprintf("/go/app/env/%s.env", env))
+	wd := os.Getenv("WD")
+	err := godotenv.Load(fmt.Sprintf("%s/env/%s.env", wd, env))
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	if env == "dev" || env == "test" {
-		err = godotenv.Load("/go/app/env/secret.env")
+		err = godotenv.Load(fmt.Sprintf("%s/env/secret.env", wd))
 	}
 
 	return errors.WithStack(err)

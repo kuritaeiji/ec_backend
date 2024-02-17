@@ -27,7 +27,7 @@ jobs:
         with:
           version: v1.55.2
       - name: Go Test
-        run: export ENV=test && go test ./...
+        run: export ENV=test && export WD=$(pwd) && go test ./...
 
   build-deploy:
     needs: lint-test
