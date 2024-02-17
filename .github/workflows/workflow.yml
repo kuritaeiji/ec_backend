@@ -26,6 +26,8 @@ jobs:
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.55.2
+      - name: pwd ls
+        run: pwd && ls -al
       - name: Go Test
         run: export ENV=test && export WD=$(pwd) && go test ./...
 
