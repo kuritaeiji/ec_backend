@@ -34,14 +34,12 @@ jobs:
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.55.2
-      - name: Set env
-        run: export ENV=citest && export WD=$(pwd)
       - name: Setup DB
         run: mysql -u root --protocol tcp < .github/workflows/setup.sql
       - name: DB migrate
-        run: go run cmd/bun/main.go init && go run cmd/bun/main.go migrate
+        run: export ENV=citest && export WD=$(pwd) && go run cmd/bun/main.go init && go run cmd/bun/main.go migrate
       - name: Go Test
-        run: go test ./...
+        run: export ENV=citest && export WD=$(pwd) && go test ./...
 
   build-deploy:
     needs: lint-test
