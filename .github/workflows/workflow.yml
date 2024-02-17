@@ -29,7 +29,7 @@ jobs:
       - name: pwd ls
         run: pwd && ls -al
       - name: Go Test
-        run: export ENV=test && export WD=$(pwd) && go test ./...
+        run: export ENV=test && export WD=$(pwd) && touch env/secret.env && go test ./...
 
   build-deploy:
     needs: lint-test
