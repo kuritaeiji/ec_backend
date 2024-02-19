@@ -2,3 +2,5 @@
 env/secret.env
 cover.out
 cover.html
+
+main

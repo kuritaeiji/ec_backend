@@ -14,7 +14,7 @@ func SetupMiddleware(e *echo.Echo, container *dig.Container) (*echo.Echo, *echo.
 	err := container.Invoke(func(sessionMiddleware SessionMiddleware, requireLoginMiddleware RequireLoginMiddleware) {
 		e.Use(middleware.Recover())
 		e.Use(sessionMiddleware.Middleware)
-		loginG = e.Group("", requireLoginMiddleware.Middleware)
+		loginG = e.Group("/private", requireLoginMiddleware.Middleware)
 	})
 
 	return e, loginG, errors.WithStack(err)

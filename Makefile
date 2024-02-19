@@ -20,7 +20,7 @@ run: gen
 	export ENV=dev && go run -race enduser/api/main.go
 .PHONY: run
 
-build: gen
+build:
 	go build -o main enduser/api/main.go
 .PHONY: build
 
